@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Robert 内容工作台｜内部试用</title>
+  <link rel="stylesheet" href="./app.css">
+<style>.demo-notice{padding:12px 20px;background:#edf5f1;color:#24584b;display:grid;gap:8px;font-size:13px}.demo-notice div{display:flex;flex-wrap:wrap;gap:8px}.demo-notice button{padding:7px 12px;border:1px solid #bdcec6;background:#fff;border-radius:6px;cursor:pointer}.demo-notice span{line-height:1.6}</style><style>@media(max-width:520px){.result-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.result-actions .button{min-height:40px;line-height:1.5}.result-actions [data-quality]{grid-column:1/-1}}</style></head>
+<body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">R</span><span><strong>Robert 内容工作台</strong><small>内部业务系统</small></span></div>
+    <div class="account-actions"><span id="account-name" class="account-name hidden"></span><button id="logout" class="button ghost hidden" type="button">退出</button></div>
+  </header><section class="demo-notice" aria-label="演示说明"><strong>公网交互 Demo · 合成数据</strong><span>不连接正式系统或真实AI；请勿输入真实素材。数据仅保存在当前浏览器，不跨设备同步。</span><div><button data-demo-role="member_demo" type="button">体验成员</button><button data-demo-role="admin_demo" type="button">体验管理员</button><button data-demo-role="other_demo" type="button">体验另一成员</button><button id="demo-reset" type="button">重置演示</button></div></section>
+
+  <main id="main-content">
+    <section id="login-view" class="panel auth-panel">
+      <p class="eyebrow">团队内部入口</p>
+      <h1>登录工作台</h1>
+      <p>仅授权团队成员可以处理内部业务素材。</p>
+      <form id="login-form" class="login-form">
+        <label for="username">账号</label><input id="username" name="username" autocomplete="username" required>
+        <label for="password">密码</label><input id="password" name="password" type="password" autocomplete="current-password" required>
+        <button class="button primary" type="submit">登录</button>
+      </form>
+      <div id="login-state" class="form-state" aria-live="polite"></div>
+    </section>
+
+    <section id="workspace-view" class="workspace hidden">
+      <aside class="sidebar" aria-label="工作台导航">
+        <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true" aria-label="收起左侧导航" title="收起左侧导航">
+          <span aria-hidden="true">‹</span>
+        </button>
+        <nav>
+          <button class="nav-item active" data-workspace-view="creator" type="button" title="新建内容"><span aria-hidden="true">＋</span><span class="nav-label">新建内容</span></button>
+          <button class="nav-item" data-workspace-view="history" type="button" title="历史成稿"><span aria-hidden="true">▤</span><span class="nav-label">历史成稿</span></button>
+        </nav>
+        <div class="sidebar-note"><strong>内容边界</strong><p>只处理已授权素材。知识只在自然适配时使用，不强行加入案例或第一人称经历。</p></div>
+      </aside>
+
+      <div class="workspace-main">
+        <section id="creator-page">
+          <header class="page-header"><div><p class="eyebrow">内容生产</p><h1>新建内容</h1></div><button class="button ghost" type="button" data-open-history>查看历史成稿</button></header>
+
+          <section class="business-switch" role="radiogroup" aria-label="业务类型">
+            <button class="business-tab" data-kind="copy" type="button" role="radio" aria-checked="false"><span class="tab-icon">文</span><span><strong>短视频文案生成</strong><small>优化、补充或创作短视频口播文案</small></span></button>
+            <button class="business-tab" data-kind="clip" type="button" role="radio" aria-checked="false"><span class="tab-icon">剪</span><span><strong>原课精华切片</strong><small>从逐字稿或 SRT 提取原声片段</small></span></button>
+          </section>
+
+          <form id="business-form" class="content-panel" aria-disabled="true">
+            <fieldset id="business-fields" disabled>
+              <div id="empty-selection" class="empty-selection"><strong>请选择上方业务类型</strong><span>选择后显示对应的业务输入项。</span></div>
+
+              <div id="copy-mode-panel" class="field hidden">
+                <fieldset class="video-type-field"><legend>视频类型 <strong>必选</strong></legend><div class="mode-options">
+                  <label class="mode-option"><input type="radio" name="video_type" value="traffic"><span><strong>流量视频</strong><small>吸引观看，强化观点与传播</small></span></label>
+                  <label class="mode-option"><input type="radio" name="video_type" value="sales"><span><strong>带货视频</strong><small>表达商品或服务价值，促进咨询与成交</small></span></label>
+                </div></fieldset>
+                <span class="field-label">生产方式 <strong>必选</strong></span>
+                <div class="mode-options" role="radiogroup" aria-label="生产方式">
+                  <label class="mode-option"><input type="radio" name="creation_mode" value="content_optimization" checked><span><strong>内容优化</strong><small>有参考文案，优化结构、节奏与表达</small></span></label>
+                  <label class="mode-option"><input type="radio" name="creation_mode" value="content_completion"><span><strong>内容填充</strong><small>有框架或想法，补齐内容与衔接</small></span></label>
+                  <label class="mode-option"><input type="radio" name="creation_mode" value="content_creation"><span><strong>内容创作</strong><small>有主题和方向，设计结构并完成正文</small></span></label>
+                </div>
+              </div>
+
+              <label class="field source-field">
+                <span id="source-label" class="field-label">业务内容 <strong>必填</strong></span>
+                <textarea id="source-input" name="source" maxlength="50000" placeholder="请先选择业务类型"></textarea>
+                <span class="field-meta"><span></span><span id="source-count" class="limit-count hidden">0 / 50000</span></span>
+              </label>
+
+              <label id="instruction-field" class="field hidden">
+                <span class="field-label">本次要求 <span class="optional">可选</span></span>
+                <textarea id="instruction-input" name="user_instruction" maxlength="2000" placeholder="例如：开头更直接；保留原观点；语气克制；结尾给一个具体行动"></textarea>
+                <span class="field-meta"><span>只写针对本次内容的特殊要求，通用短视频规则由系统处理。</span><span id="instruction-count">0 / 2000</span></span>
+              </label>
+
+              <div id="clip-file-panel" class="clip-file-panel hidden">
+                <div><strong>上传字幕或逐字稿</strong><small>SRT 会保留时间码并输出中文/双语字幕与剪辑时间点；TXT 按普通逐字稿处理。</small></div>
+                <label class="button ghost file-button">选择 SRT / TXT<input id="clip-file-input" type="file" accept=".srt,.txt,text/plain,application/x-subrip"></label>
+                <div id="clip-file-state" class="file-state" aria-live="polite"></div>
+              </div>
+
+              <div id="clip-options" class="clip-options hidden">
+                <label class="field"><span class="field-label">切片用途 <span class="optional">可选</span></span><select name="target_purpose"><option value="">由系统判断</option><option>课程口播精华切片</option><option>60秒课程口播</option><option>短视频核心观点</option></select></label>
+                <label class="field"><span class="field-label">必须保留原句 <span class="optional">可选</span></span><textarea name="must_keep_text" maxlength="500" placeholder="仅在确实需要逐字保留时填写；多条请换行"></textarea></label>
+              </div>
+
+              <div id="business-state" class="field-error" aria-live="polite"></div>
+              <div class="generation-bar">
+                <fieldset class="generation-mode-field">
+                  <legend>生成模式</legend>
+                  <div class="generation-mode-options">
+                    <label class="generation-mode-option"><input type="radio" name="generation_mode" value="standard" checked><span><strong>日常生成 <em>推荐</em></strong><small>速度更快、费用更低</small></span></label>
+                    <label class="generation-mode-option"><input type="radio" name="generation_mode" value="high_quality"><span><strong>精细生成</strong><small>理解更深入、费用更高</small></span></label>
+                  </div>
+                  <p id="generation-mode-help" class="generation-mode-help">适合日常批量任务，使用相同业务规则和知识边界。</p>
+                </fieldset>
+                <div class="submit-group"><span id="authorization-text" class="authorization-note">点击生成即确认本次素材可用于内部处理。</span><button id="submit-business" class="button primary submit-button" type="submit">生成内容</button></div>
+              </div>
+            </fieldset>
+          </form>
+        </section>
+
+        <section id="result-view" class="result-view hidden" aria-live="polite"></section>
+        <section id="library-page" class="hidden"></section>
+
+        <section id="history-page" class="hidden">
+          <header class="page-header"><div><p class="eyebrow">成稿记录</p><h1>历史成稿</h1></div><div class="library-actions"><button id="history-review" class="button ghost" type="button">我的提交</button><button id="history-library" class="button ghost hidden" type="button">管理参考文案</button><button id="history-new" class="button primary" type="button">＋ 新建内容</button></div></header>
+          <section id="review-panel" class="hidden" aria-label="内容审核"></section>
+          <section class="history-toolbar" aria-label="历史筛选">
+            <div class="history-filter-primary">
+              <label class="history-search"><span>搜索成稿</span><input id="history-search" type="search" placeholder="输入主题或正文关键词"></label>
+              <label><span>内容类型</span><select id="history-kind"><option value="all">全部类型</option><option value="copy">短视频文案</option><option value="clip">原课精华切片</option></select></label>
+              <label id="history-mode-field"><span>生产方式</span><select id="history-mode"><option value="all">全部方式</option><option value="content_optimization">内容优化</option><option value="content_completion">内容填充</option><option value="content_creation">内容创作</option></select></label>
+              <label><span>优质状态</span><select id="history-quality"><option value="all">全部状态</option><option value="content_quality">内容质量好</option><option value="traffic_effect">流量效果好</option><option value="sales_effect">带货效果好</option><option value="liked">个人已标记</option><option value="unliked">个人未标记</option></select></label>
+            </div>
+            <div class="history-filter-secondary">
+              <label class="history-video-type"><span>视频类型</span><select id="history-video-type"><option value="all">全部类型</option><option value="traffic">流量视频</option><option value="sales">带货视频</option><option value="general">通用 / 待分类</option></select></label>
+              <fieldset class="history-date-filter"><legend>更新时间</legend><div class="history-date-presets">
+                <button class="date-preset active" data-history-date="all" type="button">全部</button>
+                <button class="date-preset" data-history-date="today" type="button">今天</button>
+                <button class="date-preset" data-history-date="7d" type="button">近 7 天</button>
+                <button class="date-preset" data-history-date="30d" type="button">近 30 天</button>
+                <button class="date-preset" data-history-date="custom" type="button">自定义</button>
+              </div></fieldset>
+              <div id="history-custom-date" class="history-custom-date hidden">
+                <button id="history-date-trigger" class="history-date-trigger" type="button" aria-haspopup="dialog" aria-expanded="false"><span>日期范围</span><strong id="history-date-label">请选择开始和结束日期</strong><i aria-hidden="true">▾</i></button>
+                <input id="history-date-from" type="hidden"><input id="history-date-to" type="hidden">
+                <section id="history-calendar" class="history-calendar hidden" role="dialog" aria-label="选择日期范围">
+                  <header><button id="history-calendar-prev" type="button" aria-label="上一个月">‹</button><strong id="history-calendar-title"></strong><button id="history-calendar-next" type="button" aria-label="下一个月">›</button></header>
+                  <div class="calendar-weekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+                  <div id="history-calendar-days" class="calendar-days"></div>
+                  <footer><span id="history-calendar-hint">先选择开始日期</span><button id="history-calendar-clear" type="button">清除日期</button></footer>
+                </section>
+              </div>
+              <label class="history-sort"><span>排序</span><select id="history-sort"><option value="updated_desc">最近更新</option><option value="updated_asc">最早更新</option><option value="liked_first">优质优先</option></select></label>
+              <button id="history-clear" class="button ghost history-clear" type="button">清除筛选</button>
+            </div>
+            <div id="history-active-filters" class="history-active-filters" aria-live="polite"></div>
+          </section>
+          <div id="history-state" class="history-state" aria-live="polite"></div>
+          <div id="history-list" class="history-list"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <script src="./demo-adapter.js" defer></script><script src="./app.js" defer></script>
+  <script src="./library.js" defer></script>
+</body>
+</html>
