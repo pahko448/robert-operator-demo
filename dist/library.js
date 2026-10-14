@@ -189,8 +189,8 @@ async function openQualityDialog(task, item = null) {
   const old = $("#quality-dialog"); if (old) old.remove();
   const dialog = document.createElement("dialog"); dialog.id = "quality-dialog"; dialog.className = "quality-dialog";
   const own = !task?.ownerUsername || task.ownerUsername === currentUser.username;
-  dialog.innerHTML = '<form method="dialog"><h2>' + (item ? '调整参考标记' : '标记优质 / 提交团队审核') + '</h2><p>个人标记立即生效；团队参考须管理员审核通过。</p>' +
-    (!item ? '<fieldset class="quality-checks"><legend>本次操作（二选一）</legend>' + (own ? '<label><input type="radio" name="quality-destination" value="personal" checked> 标记为个人优质</label>' : '') + '<label><input type="radio" name="quality-destination" value="team"' + (!own ? ' checked' : '') + '> 提交团队审核</label></fieldset>' : '') +
+  dialog.innerHTML = '<form method="dialog"><h2>' + (item ? '调整参考标记' : admin ? '标记优质 / 纳入团队库' : '标记优质 / 提交团队审核') + '</h2><p>' + (admin ? '个人标记立即生效；管理员可直接纳入团队优质库，保留操作记录。' : '个人标记立即生效；团队参考须管理员审核通过。') + '</p>' +
+    (!item ? '<fieldset class="quality-checks"><legend>本次操作（二选一）</legend>' + (own ? '<label><input type="radio" name="quality-destination" value="personal" checked> 标记为个人优质</label>' : '') + '<label><input type="radio" name="quality-destination" value="team"' + (!own ? ' checked' : '') + '> ' + (admin ? '直接纳入团队优质库' : '提交团队审核') + '</label></fieldset>' : '') +
     '<p class="quality-snapshot">本次标记：' + escapeHtml(item?.title || task?.title || "当前成稿") + ' · ' + (task ? '第 ' + (task.revisionCount || 1) + ' 版' : '文案库条目') + '</p>' +
     '<label>适用类型<select id="quality-video-type">' + videoOptions(item?.video_type || task?.videoType || "general") + '</select></label>' +
     '<fieldset class="quality-checks"><legend>人工质量与效果标记（可多选）</legend>' + labelOptions("quality-label", labels) + '</fieldset><p class="field-help">无需填写数据和平台。清除全部标签即可撤回参考资格。</p>' +
@@ -203,14 +203,14 @@ async function openQualityDialog(task, item = null) {
   const updateDestination = () => {
     const team = $('input[name="quality-destination"]:checked', dialog)?.value === "team";
     $("#submission-note-field", dialog)?.classList.toggle("hidden", !team);
-    $("#quality-save", dialog).textContent = item ? "保存调整" : team ? "提交管理员审核" : "保存个人标记";
+    $("#quality-save", dialog).textContent = item ? "保存调整" : team ? (admin ? "确认纳入团队优质库" : "提交管理员审核") : "保存个人标记";
   };
   $$('input[name="quality-destination"]', dialog).forEach(r => r.addEventListener("change", updateDestination)); updateDestination();
   $("#quality-save").addEventListener("click", async () => {
     const button = $("#quality-save"); button.disabled = true;
     const qualityLabels = $$('input[name="quality-label"]:checked', dialog).map(x => x.value);
     const team = !item && $('input[name="quality-destination"]:checked', dialog)?.value === "team";
-    const body = {video_type: $("#quality-video-type").value, quality_labels: qualityLabels, destination: item ? (item.scope?.startsWith("personal:") ? "personal" : "team") : team ? "team" : "personal", submission_note: $("#submission-note", dialog)?.value || ""};
+    const body = {video_type: $("#quality-video-type").value, quality_labels: qualityLabels, destination: item ? (item.scope?.startsWith("personal:") ? "personal" : "team") : team ? "team" : "personal", direct_admit: !item && team && admin, submission_note: $("#submission-note", dialog)?.value || ""};
     const url = item ? "/api/v1/library/" + encodeURIComponent(item.entry_id) : "/api/v1/library/history";
     if (!item) Object.assign(body, {owner_username: task.ownerUsername || currentUser.username, conversation_id: task.conversationId, content_sha256: hash});
     try {
@@ -220,7 +220,7 @@ async function openQualityDialog(task, item = null) {
         task.liked = qualityLabels.length > 0;
       }
       if (task && !team) { task.libraryLabels = qualityLabels; renderResult(); }
-      dialog.close(); showToast(team ? (result.body.duplicate ? "此版本已提交，可在提交记录查看状态" : "已提交，审核通过后供团队参考") : qualityLabels.length ? "已保存参考标记" : "已撤回参考资格");
+      dialog.close(); showToast(team ? (admin ? (result.body.duplicate ? "此版本已纳入，可在内容审核查看记录" : "已直接纳入团队优质库") : (result.body.duplicate ? "此版本已提交，可在提交记录查看状态" : "已提交，审核通过后供团队参考")) : qualityLabels.length ? "已保存参考标记" : "已撤回参考资格");
       if (item) await loadLibrary();
     } catch (error) { $("#quality-save-state").textContent = error.message + "，请重试。"; }
     finally { button.disabled = false; }

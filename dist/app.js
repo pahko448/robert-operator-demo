@@ -253,7 +253,7 @@ function renderResult() {
   const success = task.status === "SUCCESS";
   const readOnly = Boolean(task.readOnly);
   const likeButton = success && task.kind === "copy"
-    ? `<button class="button ghost" type="button" data-quality>${readOnly ? "提交团队审核" : "标记优质 / 提交团队审核"}</button>`
+    ? `<button class="button ghost" type="button" data-quality>${currentUser?.role === "ADMIN" ? (readOnly ? "直接纳入团队优质库" : "标记优质 / 纳入团队库") : (readOnly ? "提交团队审核" : "标记优质 / 提交团队审核")}</button>`
     : success && !readOnly ? `<button class="button ghost ${task.liked ? "liked" : ""}" type="button" data-like>${task.liked ? "已标记优质" : "标记为优质"}</button>` : "";
   const revise = success && task.kind === "copy" && !readOnly ? `<section class="revision-box"><h3>继续修改这篇文案</h3><p>写清本轮要改什么，系统会基于当前成稿继续修改并覆盖历史中的最新成稿。</p><textarea id="revision-input" maxlength="2000" placeholder="例如：开头再直接一些；第二段缩短；结尾不要口号，改成一个具体行动"></textarea><div class="revision-actions"><span id="revision-state" class="field-error"></span><button class="button primary" type="button" data-revise>按要求修改</button></div></section>` : "";
   const versionMeta = success ? `第 ${Math.max(1, task.revisionCount || 1)} 版 · 已修改 ${Math.max(0, (task.revisionCount || 1) - 1)} 次 · 用时 ${formatDuration(task.elapsedMs)}` : "";
@@ -267,8 +267,6 @@ function renderResult() {
     $("[data-like]", target)?.addEventListener("click", toggleCurrentLike);
     $("[data-quality]", target)?.addEventListener("click", () => openQualityDialog(currentTask));
     if (task.kind === "copy" && !readOnly) {
-      const revisionInput = $("#revision-input", target);
-      revisionInput?.insertAdjacentHTML("beforebegin", '<label>本轮视频类型<select id="revision-video-type"><option value="">请选择</option>' + videoOptions(task.videoType || "general").replace(/<option value="general"[^>]*>[^<]*<\/option>/, "") + '</select></label>');
       $("[data-revise]", target)?.addEventListener("click", submitRevision);
     }
   }
@@ -352,15 +350,12 @@ async function submitBusiness(event) {
 }
 
 async function submitRevision() {
-  const videoType = $("#revision-video-type")?.value;
-  if (!videoType) return showToast("请选择本轮流量视频或带货视频类型。");
   const instruction = $("#revision-input").value.trim();
   if (!instruction) {
     $("#revision-state").textContent = "请写清本轮要修改的内容。";
     return;
   }
   const prior = currentTask;
-  prior.videoType = videoType;
   const revised = {...prior, id: crypto.randomUUID(), instruction, previousOutput: prior.response?.business_output?.content || "", status: "RUNNING", requestId: "", response: null, message: ""};
   await executeTask(revised);
 }

@@ -62,10 +62,17 @@
       const digest=await hash(r.business_output.content);if(body.content_sha256!==digest)return reply(409,{message:'成稿版本已变化，请重新查看'});
       const snap={content:r.business_output.content,content_sha256:digest,title:r.title,source_path:'history/'+r.conversation_id,source_sha256:digest,source_version:r.revision_count,source_owner:owner,video_type:body.video_type,quality_labels:body.quality_labels||[],rights_status:'synthetic_demo_only'};
       if(body.destination==='team'||route.endsWith('/reviews')){
+        if(body.direct_admit&&!admin)return reply(403,{message:'只有管理员可直接纳入团队优质库'});
         if(!snap.quality_labels.length)return reply(400,{message:'至少选择一个标记'});
         const id='review-demo-'+owner+'-'+r.conversation_id+'-'+r.revision_count;
-        const prior=state.reviews.find(x=>x.entry_id===id);if(prior)return reply(200,{status:'success',item:clone(prior),duplicate:true});
-        const item={...snap,entry_id:id,status:'pending',submitter_username:session,submitter_display_name:USERS[session].display_name,submitted_at:Math.floor(Date.now()/1000),submission_note:String(body.submission_note||'')};state.reviews.unshift(item);save();return reply(200,{status:'success',item});
+        const prior=state.reviews.find(x=>x.entry_id===id);
+        if(prior){
+          if(body.direct_admit&&admin&&prior.status!=='approved'){Object.assign(prior,{status:'approved',video_type:snap.video_type,quality_labels:snap.quality_labels,admission_mode:'admin_direct',reviewed_by:session,reviewer_display_name:USERS[session].display_name,reviewed_at:Math.floor(Date.now()/1000),review_opinion:'管理员直接纳入团队优质库'});save();}
+          return reply(200,{status:'success',item:clone(prior),duplicate:true});
+        }
+        const item={...snap,entry_id:id,status:body.direct_admit&&admin?'approved':'pending',submitter_username:session,submitter_display_name:USERS[session].display_name,submitted_at:Math.floor(Date.now()/1000),submission_note:String(body.submission_note||'')};
+        if(body.direct_admit&&admin)Object.assign(item,{admission_mode:'admin_direct',reviewed_by:session,reviewer_display_name:USERS[session].display_name,reviewed_at:Math.floor(Date.now()/1000),review_opinion:'管理员直接纳入团队优质库'});
+        state.reviews.unshift(item);save();return reply(200,{status:'success',item});
       }
       if(owner!==session)return reply(403,{message:'不能修改他人的个人标记'});
       const item={...snap,entry_id:'COPY-LIB-DEMO-P-'+digest.slice(0,16),scope:'personal:'+session,active:!!snap.quality_labels.length};
@@ -92,7 +99,7 @@
       await new Promise(resolve=>setTimeout(resolve,550));
       const clip=route!=='/api/v1/copy',id=body.conversation_id||crypto.randomUUID(),prior=record(session,id),version=(prior?.revision_count||0)+1;
       const content='【合成演示成稿，不是真实AI输出】先明确本次目标，再将问题分解为可执行的小动作。完成后检查哪些表达需要保留，哪些需要调整。此处不使用或复述输入的真实素材。';
-      const output=clip?{content,clip_script:content,selected_segments:[],script:content,cut_list:[],fidelity_report:{selected_segment_count:0},alignment_report:{selected_cue_count:0},zh_srt:'1\n00:00:00,000 --> 00:00:03,000\n合成切片演示，不是真实课程\n',bilingual_srt:''}:{content,titles:['合成演示：先明确目标再开始行动','合成演示：让修改要求更具体'],video_type:body.video_type||'general',change_summary:'仅验证界面流程，未调用AI'};
+      const output=clip?{content,clip_script:content,selected_segments:[],script:content,cut_list:[],fidelity_report:{selected_segment_count:0},alignment_report:{selected_cue_count:0},zh_srt:'1\n00:00:00,000 --> 00:00:03,000\n合成切片演示，不是真实课程\n',bilingual_srt:''}:{content,titles:['合成演示：先明确目标再开始行动','合成演示：让修改要求更具体'],video_type:prior?.business_output?.video_type||body.video_type||'general',change_summary:'仅验证界面流程，未调用AI'};
       const value={conversation_id:id,owner_username:session,owner_display_name:USERS[session].display_name,business_type:clip?'clip':'copy',title:output.titles?.[0]||'合成切片演示',business_output:output,revision_count:version,updated_at:Math.floor(Date.now()/1000),creation_mode:body.creation_mode||'content_optimization',generation_mode:body.generation_mode||'standard',source_format:body.source?.asset_type||'text',source_trace:[],reference_context:[],versions:[],liked:false};
       if(prior)state.histories.splice(state.histories.indexOf(prior),1,value);else state.histories.unshift(value);save();return reply(200,{status:'success',...clone(value),execution_meta:{total_ms:550},request_id:'synthetic-demo'});
     }
