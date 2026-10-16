@@ -5,7 +5,7 @@ const C=DemoConfig,A=DemoAdapter;let operation='generate',current=null,busy=fals
 try{const s=JSON.parse(localStorage.getItem(C.storageKey)||'null');if(s&&Array.isArray(s.records)&&Array.isArray(s.reviews))db=s;}catch{}
 const business=()=>$('#business').value,admin=()=>$('#identity').value==='admin',user=()=>admin()?'演示管理员':'演示成员';
 function notify(t){$('#toast').textContent=t;}
-function persist(){try{localStorage.setItem(C.storageKey,JSON.stringify(db));}catch{notify('浏览器保存失败，请下载结果；刷新可能丢失。');}}
+function persist(){try{localStorage.setItem(C.storageKey,JSON.stringify(db));return true;}catch{notify('浏览器保存失败，请下载结果；刷新可能丢失。');return false;}}
 function show(p){['creator','result','history','reviews'].forEach(x=>$('#'+x+'-page').classList.toggle('hidden',x!==p));$$('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===p));if(p==='history')renderHistory();if(p==='reviews')renderReviews();window.scrollTo(0,0);}
 function sources(ss){return ss.map(s=>'<article class="source-card"><h3>'+esc(s.title)+'</h3><p>'+esc(s.text)+'</p><small>'+esc(s.locator)+'</small><p><span class="tag">实际用于演示</span></p><p class="muted">'+esc(s.usage)+'</p></article>').join('');}
 function assessment(a){return !a?'':'<div class="score-card"><h3>学问忠实度</h3><span class="tag">'+esc(a.fidelity.level)+'</span><p>'+esc(a.fidelity.reason)+'</p></div><div class="score-card"><h3>表达贴近度</h3><span class="tag">'+esc(a.expression.level)+'</span><p>'+esc(a.expression.reason)+'</p></div><h3>逐句诊断（示例）</h3>'+a.issues.map(x=>'<p>“'+esc(x.fragment)+'”</p><p class="muted">'+esc(x.suggestion)+' · '+esc(x.source)+'</p>').join('');}
